@@ -111,3 +111,6 @@ wandb/
 
 # Slurm
 *.out
+
+# pycharm
+\.idea/

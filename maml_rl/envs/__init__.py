@@ -1,5 +1,12 @@
 from gym.envs.registration import register
 
+# Highway env
+
+register(
+    'Highway-v0',
+    entry_point='maml_rl.envs.highway.highwayEnv:HighwayEnv'
+)
+
 # Bandit
 # ----------------------------------------
 

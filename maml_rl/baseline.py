@@ -26,7 +26,7 @@ class LinearFeatureBaseline(nn.Module):
 
     @property
     def feature_size(self):
-        return 2 * self.input_size + 4
+        return 2 * self.input_size + 4  # check the paper Supplementary Material 2
 
     def _feature(self, episodes):
         ones = episodes.mask.unsqueeze(2)
@@ -53,7 +53,7 @@ class LinearFeatureBaseline(nn.Module):
         XT_X = torch.matmul(featmat.t(), featmat)
         for _ in range(5):
             try:
-                coeffs, _ = torch.lstsq(XT_y, XT_X + reg_coeff * self._eye)
+                coeffs, _ = torch.lstsq(XT_y, XT_X + reg_coeff * self._eye)  # least square fit
                 break
             except RuntimeError:
                 reg_coeff *= 10
