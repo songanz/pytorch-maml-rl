@@ -2,6 +2,8 @@ import gym
 import maml_rl.envs
 from time import sleep
 
+# todo: after the training and being sure everything is good, delete this file
+
 if __name__ == '__main__':
     env = gym.make('Highway-v0')
 

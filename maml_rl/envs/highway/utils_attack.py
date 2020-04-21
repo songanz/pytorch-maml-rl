@@ -3,13 +3,30 @@ import numpy as np
 from . import driveFuncs
 from . import defineCnst as C
 from . import params
-from . import utils_sim
+from .Car import Car
 
 """ THIS IS FOR ATTACK ONLY """
 
 def initCarsAtt(numCar):
     # no need to put the attacker near the target agent anymore
-    envCars = utils_sim.initCars(numCar)
+    envCars = initCars(numCar)
+
+    return envCars
+
+def initCars(numCar):
+    # create new instance of car every episode
+    envCars = []
+    for nC in range(numCar):
+        envCars.append(Car(nC))
+
+    # place the target car (the training agent); C.T_CAR=0
+    envCars[C.T_CAR].xPos = 0
+    envCars[C.T_CAR].xVel = params.CAR_MIN_SPEED + np.random.randint(0, 6) * params.CAR_ACCEL_RATE
+    envCars[C.T_CAR].laneNum = np.random.randint(3) * params.ROAD_CENTER_LANE  # any of the three lane
+    envCars[C.T_CAR].yPos = envCars[0].laneNum * params.ROAD_LN_GAP + params.ROAD_LANE_CENTER
+
+    # place rest of the cars
+    driveFuncs.placeCars(envCars)
 
     return envCars
 
