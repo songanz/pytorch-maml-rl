@@ -2,54 +2,7 @@ import torch as tr
 import torch.nn as nn
 from torch.autograd import Variable
 
-import numpy as np
 from . import params
-import random
-from collections import deque
-
-from . import defineCnst as C
-
-
-def getSAT(safeBuf, coliBuf, device, num_CVAE=0):
-    # there is enough data in memory hence
-    if not num_CVAE == 0:
-        sBatch = safeBuf.getMiniBatch(batch_size=num_CVAE)
-        cBatch = coliBuf.getMiniBatch(batch_size=num_CVAE)
-    else:
-        sBatch = safeBuf.getMiniBatch(batch_size=params.NUM_SAFE_SAMPLE)
-        cBatch = coliBuf.getMiniBatch(batch_size=params.NUM_COLI_SAMPLE)
-
-    miniBatch = sBatch
-    miniBatch = np.append(miniBatch, cBatch, axis=0)
-
-    stateBuf_array = np.array([each[C.ST_IDX] for each in miniBatch])
-    actionBuf_array = np.array([each[C.ACT_IDX] for each in miniBatch])
-    rewards_array = np.array([each[C.REW_IDX] for each in miniBatch])
-    nextStateBuf_array = np.array([each[C.NXTST_IDX] for each in miniBatch])
-    doneBuf_array = np.array([not each[C.DN_IDX] for each in miniBatch], dtype=int)
-
-    stateBuf = Variable(tr.from_numpy(stateBuf_array).to(device), requires_grad=False).float()
-    actionBuf = Variable(tr.from_numpy(actionBuf_array.astype(int)).to(device), requires_grad=False).float()
-    rewards = Variable(tr.from_numpy(rewards_array).to(device), requires_grad=False).float()
-    nextStateBuf = Variable(tr.from_numpy(nextStateBuf_array).to(device), requires_grad=False).float()
-    doneBuf = Variable(tr.from_numpy(doneBuf_array).to(device), requires_grad=False).float()
-
-    return stateBuf, actionBuf, rewards, nextStateBuf, doneBuf, \
-           stateBuf_array, actionBuf_array, rewards_array, nextStateBuf_array, doneBuf_array
-
-
-class Memory:
-    def __init__(self, MemLen=10000):
-        self.memory = deque(maxlen=MemLen)
-
-    def getMiniBatch(self, batch_size=params.BATCH_SIZE):
-        if batch_size < len(self.memory):
-            return random.sample(self.memory, batch_size)
-        else:
-            return random.sample(self.memory, params.BATCH_SIZE)
-
-    def remember(self, state, action, reward, next_state, coli):
-        self.memory.append((state, action, reward, next_state, coli))
 
 
 class QNetwork(nn.Module):

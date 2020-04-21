@@ -6,6 +6,7 @@ from gym.envs.classic_control import rendering
 
 from .utils_attack import *
 from .attacker import *
+import os
 
 
 class HighwayEnv(gym.Env):
@@ -49,10 +50,6 @@ class HighwayEnv(gym.Env):
         self.attacker_agent.Q_eval_net.eval()
 
         # for render
-        metadata = {
-            'render.modes': ['human', 'rgb_array'],
-            'video.frames_per_second': 2
-        }
         self.viewer = rendering.Viewer(1000, 100)
 
     def seed(self, seed=None):
@@ -173,25 +170,6 @@ class HighwayEnv(gym.Env):
         # horizotal: x axis; vertical: y axis
         # origin: left bottom corner
 
-        """
-        Example
-        line1 = rendering.Line((100, 300), (500, 300))
-        line2 = rendering.Line((100, 200), (500, 200))
-
-        # add color
-        line1.set_color(0, 0, 0)
-        line2.set_color(0, 0, 0)
-
-        # add the object to the viewer
-        self.viewer.add_geom(line1)
-        self.viewer.add_geom(line2)
-
-        # draw a circle
-        circle = rendering.make_circle(30)
-        circle_transform = rendering.Transform(translation=(100, 200))
-        circle.add_attr(circle_transform)
-        self.viewer.add_geom(circle)
-        """
         if close:
             if self.viewer is not None:
                 self.viewer.close()

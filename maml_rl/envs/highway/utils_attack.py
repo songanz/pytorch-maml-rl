@@ -4,14 +4,6 @@ from . import driveFuncs
 from . import defineCnst as C
 from . import params
 from . import utils_sim
-import torch as tr
-from torch.autograd import Variable
-import scipy.io as sio
-import os
-import random
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import matplotlib.animation as animation
 
 """ THIS IS FOR ATTACK ONLY """
 
@@ -20,41 +12,6 @@ def initCarsAtt(numCar):
     envCars = utils_sim.initCars(numCar)
 
     return envCars
-
-def debugVis(envCars, visId):
-    plt.cla()  # clear current axis
-    ax = plt.gca()
-    ax.set_xlim(-100, 100)
-    ax.set_ylim(-0.1, 10.9)
-    ax.set_aspect('equal')
-    plt.plot([-100, 100], [0, 0], "-k")  # black: lane boundary
-    plt.plot([-100, 100], [3.6, 3.6], "-k")
-    plt.plot([-100, 100], [7.2, 7.2], "-k")
-    plt.plot([-100, 100], [10.8, 10.8], "-k")
-
-    for ind in range(len(envCars)):
-
-        car = mpatches.Rectangle((envCars[ind].xPos - 2.2, envCars[ind].yPos - 1.1), 4.4, 2.2)
-
-        if ind == C.T_CAR:
-            # target is in blue
-            car.set_fill(True)
-            car.set_color("blue")
-        elif ind == C.E_CAR:
-            # attacker is in red
-            car.set_fill(True)
-            car.set_color("red")
-        elif ind in visId:
-            # other cars in near set to green
-            car.set_fill(True)
-            car.set_color("green")
-        else:
-            car.set_fill(False)
-
-        ax.add_patch(car)
-
-    plt.grid(False)
-    plt.pause(0.001)
 
 def getAffIndiOfTarget(car, envCars):
     actTar = envCars[C.T_CAR].ActNum
@@ -352,12 +309,12 @@ def rewRespSens(envCars, collisionEgo, id4OtherColliCar):
         return failureCode
 
     """ Collision and attacker is near the target """
-    actEgo = envCars[C.E_CAR].ActNum
+    actEgo = envCars[C.T_CAR].ActNum
     actColli = envCars[id4OtherColliCar].ActNum
 
-    xEgo = envCars[C.E_CAR].xPos
-    lnEgo = envCars[C.E_CAR].laneNum
-    vTar = envCars[C.E_CAR].xVel
+    xEgo = envCars[C.T_CAR].xPos
+    lnEgo = envCars[C.T_CAR].laneNum
+    vTar = envCars[C.T_CAR].xVel
 
     xColli = envCars[id4OtherColliCar].xPos
     lnColli = envCars[id4OtherColliCar].laneNum
@@ -389,7 +346,7 @@ def rewRespSens(envCars, collisionEgo, id4OtherColliCar):
 
     elif driveFuncs.isOnLaneMark(lnEgo) and (not driveFuncs.isOnLaneMark(lnColli)):
         """ Target AV is changing lane """
-        lnEgo_N = lnEgo + envCars[C.E_CAR].laneNumAct
+        lnEgo_N = lnEgo + envCars[C.T_CAR].laneNumAct
         if (lnColli > lnEgo and lnEgo_N >= lnEgo) or (lnColli < lnEgo and lnEgo_N <= lnEgo):
             # agent is on the target car's targeted lane
             failureCode = 4  # target car change vehicle wrongly
@@ -496,267 +453,3 @@ def rewRespSens(envCars, collisionEgo, id4OtherColliCar):
             # without evasive action
             failureCode = 0
             return failureCode
-
-def drawFrame(postAtTime, visId):
-    ax = plt.gca()
-    ax.set_xlim(-100, 100)
-    ax.set_ylim(-0.1, 10.9)
-    ax.set_aspect('equal')
-    plt.plot([-100, 100], [0, 0], "-k")  # black: lane boundary
-    plt.plot([-100, 100], [3.6, 3.6], "-k")
-    plt.plot([-100, 100], [7.2, 7.2], "-k")
-    plt.plot([-100, 100], [10.8, 10.8], "-k")
-
-    for ind in range(len(postAtTime)):
-
-        car = mpatches.Rectangle((postAtTime[ind, 0] - 2.2, postAtTime[ind, 1] - 1.1), 4.4, 2.2)
-
-        if ind == C.T_CAR:
-            # target is in blue
-            car.set_fill(True)
-            car.set_color("blue")
-        elif ind == C.E_CAR:
-            # attacker is in red
-            car.set_fill(True)
-            car.set_color("red")
-        elif ind in visId:
-            # other cars in near set to green
-            car.set_fill(True)
-            car.set_color("green")
-        else:
-            car.set_fill(False)
-
-        ax.add_patch(car)
-
-    plt.draw()
-
-
-def videoGenerate(Code, Count, postHist, visIdHist, totalIdx, numCar):
-    """
-    Save video
-    posHist[i][timeIdx] = np.array([envCars[i].xPos, envCars[i].yPos, envCars[i].xVel, envCars[i].xVelAct])
-    """
-    vidoedir = os.getcwd() + "/out/videos/" + "Failure" + str(int(Code)) + "/"
-    if not os.path.exists(vidoedir):
-        os.makedirs(vidoedir)
-    videoFile = vidoedir + "numCar" + str(int(numCar)) + "Failure" + str(int(Code)) + "_Num" + str(int(Count)) + ".mp4"
-    FFMpegWriter = animation.writers['ffmpeg']
-    writer = FFMpegWriter(fps=1/params.SIM_TIME_STEP*10)  # for accelerate the animation, times 10
-    fig = plt.figure(figsize=(20,2))
-
-    with writer.saving(fig, videoFile, 100):
-        for t in range(totalIdx+1):
-            plt.cla()
-            drawFrame(postHist[:,t,:], visIdHist[t])
-            writer.grab_frame()
-
-
-def evalEpisodeAtt(attacker_agent, target_agent, envCars, i, numColi, device, saveHist=False, debug=False,
-                   failureCodeCount=np.zeros((params.FAILURE_CODE_NUM, )),
-                   attColiCount=np.zeros((params.FAILURE_CODE_NUM, )), saveVideo=False):
-    """
-
-    :param attacker_agent:
-    :param target_agent:
-    :param envCars: list of Class Car, all cars in the environment
-    :param i: ith episode
-    :param numColi:
-    :param device:
-    :param saveHist:
-    :param debug:
-    :param failureCodeCount:
-    :param attColiCount: whether collide with the attacker
-    :param saveVideo:
-    :return:
-    """
-    numCar = len(envCars)
-
-    # History for animation in matlab
-    posHist, visIdHist, actChoice, appliedAction, rewHist = utils_sim.initAniHist(numCar)
-
-    # get initial position store it for animation
-    idC, visIdHist[0] = driveFuncs.getAffordInd(envCars)
-    attackerState = getAffIndiOfTarget(envCars[0], envCars)  # np.array (24,)
-
-    """ FOR DEBUG """
-    if debug and not saveVideo:
-        debugVis(envCars, visIdHist[0])
-
-    # Store initial position
-    driveFuncs.storeCarsPos(envCars, posHist, 0)
-    s0Attacker = scaleStateAtt(attackerState)  # get the current scaled state for ego car
-    s0Target = driveFuncs.scaleState(idC[C.T_CAR, :])  # get the current scaled state for target car
-
-    # Result variables
-    totRew = 0  # total reward per episode
-
-    s0MatPE = []
-    qEstMatPE = []
-    actAndAplAct = []
-    stateidC = []
-    allRew = []
-    rewParam = []
-    # velHist = deque(maxlen=3)
-
-    prfActTar = 0
-
-    for j in range(params.NUM_STEP):
-        # eps = np.random.random()
-        attacker_agent.Q_eval_net.eval()
-        Q, _, _ = attacker_agent.Q_eval_net(
-            Variable(tr.from_numpy(s0Attacker).to(device), requires_grad=False).float()[None, ...])
-        actAtt = int(tr.argmax(Q))
-
-        # target agent
-        QTar, _, _ = target_agent.Q_eval_net(
-            Variable(tr.from_numpy(s0Target).to(device), requires_grad=False).float()[None, ...])
-        actTar = int(tr.argmax(QTar))
-
-        """ safe act policy for target car """
-        e_ln = idC[C.T_CAR, C.E_LN]
-        if driveFuncs.isOnLaneMark(e_ln):
-            # On lane mark
-            if prfActTar != 0:
-                # Override learned act if we have preferred action for lane changes
-                actTar = prfActTar
-        if QTar.cpu().data.numpy()[0, 6] > QTar.cpu().data.numpy()[0, 7]:
-            sfLMAct = 6
-        else:
-            sfLMAct = 7
-
-        # Check safety controller, override to new action if needed
-        newAct, rstPrfAct = driveFuncs.safeActEval(actTar, idC[C.T_CAR, :], sfLMAct)
-
-        if newAct != actTar:
-            # saftey controller overrides the first choice, set the original action for collision
-            # print('safe action')
-            actTar = newAct
-
-        """ constraint on the action of the attacker for more efficient attacking """
-        lnAtt = idC[C.E_CAR, C.E_LN]
-        if lnAtt == params.ROAD_RIGHT_LANE:
-            # on right lane
-            if actAtt == C.A_BR or actAtt == C.A_MR:
-                actAtt = C.A_MM
-
-        elif lnAtt == params.ROAD_LEFT_LANE:
-            # on left lane
-            if actAtt == C.A_BL or actAtt == C.A_ML:
-                actAtt = C.A_MM
-
-        # store applied action for the attacker car
-        appliedAction[j] = actAtt
-
-        """ Update cars with new actions """
-        driveFuncs.setEgoCarAction(envCars[C.E_CAR], actAtt)  # set action for the ego car
-        driveFuncs.setEgoCarAction(envCars[C.T_CAR], actTar)  # set action for the target car
-        driveFuncs.setAction(envCars[2:], idC[2:, :])  # set actions for env cars
-        driveFuncs.appAction(envCars)  # Apply actions
-
-        idC_N, visIdHist[j + 1] = driveFuncs.getAffordInd(envCars)  # get next state for all cars
-        attackerState_N = getAffIndiOfTarget(envCars[0], envCars)  # np.array (24,)
-
-        driveFuncs.storeCarsPos(envCars, posHist, j + 1)  # Store position
-
-        """ FOR DEBUG """
-        if debug and not saveVideo:
-            debugVis(envCars, visIdHist[j+1])
-
-        """ 
-        Check collision of the target car
-        Target car not neccesarily collide into the attacker 
-        """
-        collisionTar, id4OtherColliCar = checkCollisionID(envCars[C.T_CAR], envCars)
-        collisionAtt, _ = checkCollisionID(envCars[C.E_CAR], envCars)
-
-        # Get new scaled attacker car state, and target car state
-        s1Attacker = scaleStateAtt(attackerState_N)
-        s1Target = driveFuncs.scaleState(idC_N[C.T_CAR, :])
-
-        """ write reward code here """
-        rew, failureCode = rewRespSensAtt(envCars, collisionTar, collisionAtt, id4OtherColliCar)
-
-        if collisionTar:
-            numColi += 1
-            failureCodeCount[failureCode] += 1
-            if id4OtherColliCar == C.E_CAR:
-                attColiCount[failureCode] += 1
-            if saveVideo and failureCode != 0:  # failureCode=0: not responsible case, dont save that
-                videoGenerate(failureCode, failureCodeCount[failureCode], posHist, visIdHist, j+1, numCar)
-
-        totRew += rew  # total reward for implemented actions
-        rewHist[j] = rew
-
-        """ save prfActTar for target vehicle's safety check WORK ON THIS CODE """
-        if idC[C.T_CAR, C.E_LN] % 4 == 0 and actTar > C.A_HM:
-            # ego car: previously on lane, applied action was either move left or move right
-            # save it for future
-            prfActTar = actTar
-        if rstPrfAct or idC_N[C.E_CAR, C.E_LN] % 4 == 0:
-            # reset as there is no preferred action once we reach next lane
-            prfActTar = 0
-
-        if collisionTar or collisionAtt or (C.T_CAR not in visIdHist[j + 1]):
-            break
-        else:
-            # no collision so continue
-            idC, s0Attacker, s0Target = idC_N, s1Attacker, s1Target
-
-    if saveHist:
-        fileName = os.path.abspath('out/animation_zsa/data/AttposHistEval')
-        sio.savemat(fileName,
-                    {'posHist': posHist,
-                     'numCar': numCar,
-                     'visIdHist': visIdHist,
-                     'appliedAction': appliedAction,
-                     'actChoice': actChoice,
-                     'k': j + 1,
-                     's0Mat': s0MatPE,
-                     'qEstMat': qEstMatPE,
-                     'ep': i + 1,
-                     'actAndAplAct': actAndAplAct,
-                     'stateidC': stateidC,
-                     'rewHist': rewHist,
-                     'allRew': allRew,
-                     'rewParam': rewParam})
-
-    # All done result saved
-
-    return rewHist, numColi, failureCodeCount, attColiCount
-
-def evalPolicyAtt(attacker_agent, target_agent, device, ep, debug=False, saveVideo=False, saveHist=False):
-    for numCar in range(10, 20):
-        print(numCar)
-        numColi = 0  # increment on collision
-        failureCodeCount = np.zeros((params.FAILURE_CODE_NUM,))
-        attColiCount = np.zeros((params.FAILURE_CODE_NUM,))
-
-        for i in range(ep):
-            # Initialize all car positions
-            envCars = utils_sim.initCars(numCar)
-
-            rewHist, numColi, failureCodeCount, attColiCount = \
-                evalEpisodeAtt(attacker_agent, target_agent, envCars, i, numColi, device, saveHist=False, debug=debug,
-                               failureCodeCount=failureCodeCount, attColiCount=attColiCount, saveVideo=saveVideo)
-
-            if len(rewHist) > 100:
-                meanRew = np.mean(rewHist[-100:])
-            else:
-                meanRew = np.mean(rewHist)
-
-            print('episode:', i,
-                  # ' num RL ', numRLAct, ' rd ', numRandAct, ' sf ', numSafeAct, ' tot ', j + 1,
-                  # ' rew {:.2f}'.format(totRew),
-                  'mean rew {:.2f}'.format(meanRew),
-                  'num coli', numColi)
-
-        # everything is done save result
-        if saveHist:
-            evalName = os.path.abspath('out/animation_zsa/AttEvalCarFrAccl2Pol%d.mat' % numCar)
-            sio.savemat(evalName, {'rewHist': rewHist,
-                                   'meanRewHist': meanRew,
-                                   'numColi': numColi,
-                                   'failureCodeCount': failureCodeCount,
-                                   'attColiCount': attColiCount})
-
-        print('num Col: ', numColi, ' for car: ', numCar)
