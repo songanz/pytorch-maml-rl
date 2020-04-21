@@ -1,6 +1,7 @@
 from gym.envs.registration import register
 
 # Highway env
+# ----------------------------------------
 
 register(
     'Highway-v0',

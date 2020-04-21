@@ -22,11 +22,11 @@ def initCars(numCar):
     for nC in range(numCar):
         envCars.append(Car(nC))
 
-    # place ego car; C.E_CAR=0
-    envCars[C.E_CAR].xPos = 0
-    envCars[C.E_CAR].xVel = params.CAR_MIN_SPEED + np.random.randint(0, 6) * params.CAR_ACCEL_RATE
-    envCars[C.E_CAR].laneNum = np.random.randint(3) * params.ROAD_CENTER_LANE  # any of the three lane
-    envCars[C.E_CAR].yPos = envCars[0].laneNum * params.ROAD_LN_GAP + params.ROAD_LANE_CENTER
+    # place the target car (the training agent); C.T_CAR=0
+    envCars[C.T_CAR].xPos = 0
+    envCars[C.T_CAR].xVel = params.CAR_MIN_SPEED + np.random.randint(0, 6) * params.CAR_ACCEL_RATE
+    envCars[C.T_CAR].laneNum = np.random.randint(3) * params.ROAD_CENTER_LANE  # any of the three lane
+    envCars[C.T_CAR].yPos = envCars[0].laneNum * params.ROAD_LN_GAP + params.ROAD_LANE_CENTER
 
     # place rest of the cars
     driveFuncs.placeCars(envCars)

@@ -1,12 +1,11 @@
-import numpy as np
 import gym
 
 from gym import spaces
 from gym.utils import seeding
+from gym.envs.classic_control import rendering
 
 from .utils_attack import *
 from .attacker import *
-
 
 
 class HighwayEnv(gym.Env):
@@ -49,6 +48,13 @@ class HighwayEnv(gym.Env):
         self.attacker_agent.Q_eval_net.load_state_dict(saved_net_Att['Q_eval_net'])
         self.attacker_agent.Q_eval_net.eval()
 
+        # for render
+        metadata = {
+            'render.modes': ['human', 'rgb_array'],
+            'video.frames_per_second': 2
+        }
+        self.viewer = rendering.Viewer(1000, 100)
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
@@ -70,15 +76,194 @@ class HighwayEnv(gym.Env):
         self._num_total_car = task['num_total_car']
 
     def step(self, action):
+        # number of attackers is in the self._num_attacker
+        # envCar: 0 (C.T_CAR) -> the target agent of the attackers and the training agent of the maml
+        # envCar: 1 ~ 1+self._num_attacker -> the attakcers
+
+        done = False
+        # store the state for the current time step
+        idC, _ = driveFuncs.getAffordInd(self.envCars)
+
+        # safety check
+        newAct, rstPrfAct = driveFuncs.safeAct2(action, idC[C.T_CAR, :])
+
+        # change the action according to safety check
+        if newAct != action:
+            # saftey controller overrides the first choice, set the original action for collision
+            # print('safe action')
+            action, actOld = newAct, action
+            safeAct = True  # safety action was chosen
+        else:
+            safeAct = False
+
+        if self._num_attacker == 0:
+
+            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)  # set action for the ego car
+
+            driveFuncs.setAction(self.envCars[1:], idC[1:, :])  # set actions for env cars
+            driveFuncs.appAction(self.envCars)  # Apply actions
+
+        else:
+            # 0: target / training agent
+            # 1 ~ 1 + self._num_attacker: attacker
+            attackersID = [ i for i in range(1, 1 + self._num_attacker)]
+
+            # for all the attackers in the env, set its action by the self.attacker_agent policy network
+            for i in attackersID:
+                # this function is for putting up state for the attacker
+                attacker_i_state = getAffIndiOfTarget(self.envCars[i], self.envCars)
+                s0_i_attacker = scaleStateAtt(attacker_i_state)
+
+                Q, _, _ = self.attacker_agent.Q_eval_net(
+                    Variable(tr.from_numpy(s0_i_attacker).to(self.device), requires_grad=False).float()[None, ...])
+                attacker_i_action = int(tr.argmax(Q))
+
+                # set the action for each attacker in this env
+                # don't be confused by the function name
+                driveFuncs.setEgoCarAction(self.envCars[i], attacker_i_action)
+
+            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)  # set action for the target car
+
+            # set actions for other env cars
+            driveFuncs.setAction(self.envCars[1+self._num_attacker:], idC[1+self._num_attacker:, :])
+            driveFuncs.appAction(self.envCars)  # Apply actions
+
+
+        """ After applied the actions for all envCars, get the observation and reward """
+        idC_N, _ = driveFuncs.getAffordInd(self.envCars)  # get next state for all cars
+
+        # check for collision if collision then set rew to some large -ve value
+        collision = driveFuncs.checkColi4Ego(idC[C.T_CAR, :], idC_N[C.T_CAR, :], action)
+        # Get new scaled ego car state
+        eIDC_N = idC_N[0, :]
+        s1 = driveFuncs.scaleState(eIDC_N)
+        rewV, rewY, rewX, cf_d, maxV, disY, eV, cf_v, midDis = driveFuncs.getRewCmp(eIDC_N)
+
+        if safeAct:
+            if action != C.A_MM:
+                reward = -0.1
+            else:
+                # don't penalize maintain
+                reward = 0
+        else:
+            reward = (rewV + rewY + rewX) / 3  # scale between -1 to 0
+            if reward > -1e-2 and not collision:
+                # give a small +ve reward for doing things in a correct manner
+                reward = 0.01
+
+        if collision:
+            reward = -2  # for collision give more -ve reward
+            done = True
+
+        observation = s1
 
         return observation, reward, done, {'task': self._task}
 
     def reset(self):
+
         # reset the environement
-        self.envCars = initCarsAtt(self._num_total_car, num_attacker=self._num_attacker)
-        idC = driveFuncs.getAffordInd(self.envCars)
+        self.envCars = initCarsAtt(self._num_total_car)
+        idC, _= driveFuncs.getAffordInd(self.envCars)
+        observation = driveFuncs.scaleState(idC[C.T_CAR, :])
 
         return observation
 
-    def render(self, mode='human'):
+    def render(self, mode='human', close=False):
+
+        # horizotal: x axis; vertical: y axis
+        # origin: left bottom corner
+
+        """
+        Example
+        line1 = rendering.Line((100, 300), (500, 300))
+        line2 = rendering.Line((100, 200), (500, 200))
+
+        # add color
+        line1.set_color(0, 0, 0)
+        line2.set_color(0, 0, 0)
+
+        # add the object to the viewer
+        self.viewer.add_geom(line1)
+        self.viewer.add_geom(line2)
+
+        # draw a circle
+        circle = rendering.make_circle(30)
+        circle_transform = rendering.Transform(translation=(100, 200))
+        circle.add_attr(circle_transform)
+        self.viewer.add_geom(circle)
+        """
+        if close:
+            if self.viewer is not None:
+                self.viewer.close()
+                self.viewer = None
+            return
+
+        # for transform and scale
+        scale = 5
+        trans = rendering.Transform(translation=(500, 25))
+
+        # clean the canvas each frame
+        self.viewer.geoms = []
+        # lane boundary
+        lane_boundary1 = rendering.Line((-100*scale, 0), (100*scale, 0))
+        lane_boundary2 = rendering.Line((-100*scale, 3.6*scale), (100*scale, 3.6*scale))
+        lane_boundary3 = rendering.Line((-100*scale, 7.2*scale), (100*scale, 7.2*scale))
+        lane_boundary4 = rendering.Line((-100*scale, 10.8*scale), (100*scale, 10.8*scale))
+
+        lane_boundary1.set_color(0,0,0)
+        lane_boundary2.set_color(0,0,0)
+        lane_boundary3.set_color(0,0,0)
+        lane_boundary4.set_color(0,0,0)
+
+        lane_boundary1.add_attr(trans)
+        lane_boundary2.add_attr(trans)
+        lane_boundary3.add_attr(trans)
+        lane_boundary4.add_attr(trans)
+
+        self.viewer.add_geom(lane_boundary1)
+        self.viewer.add_geom(lane_boundary2)
+        self.viewer.add_geom(lane_boundary3)
+        self.viewer.add_geom(lane_boundary4)
+
+        # cars
+        for ind in range(len(self.envCars)):
+            car = self.envCars[ind]
+            l = car.xPos - 2.2
+            r = car.xPos + 2.2
+            b = car.yPos - 1.1
+            t = car.yPos + 1.1
+
+            l *= scale
+            r *= scale
+            b *= scale
+            t *= scale
+
+            if ind in [ i for i in range(1, 1 + self._num_attacker)]:
+                car_render = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
+                car_render.add_attr(trans)
+                car_render.set_color(1,0,0)
+                self.viewer.add_geom(car_render)
+            elif ind == 0:
+                car_render = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
+                car_render.add_attr(trans)
+                car_render.set_color(0,0,1)
+                self.viewer.add_geom(car_render)
+            else:
+                car1 = rendering.Line((l, b), (l, t))
+                car2 = rendering.Line((l, t), (r, t))
+                car3 = rendering.Line((r, t), (r, b))
+                car4 = rendering.Line((r, b), (l, b))
+
+                car1.add_attr(trans)
+                car2.add_attr(trans)
+                car3.add_attr(trans)
+                car4.add_attr(trans)
+
+                self.viewer.add_geom(car1)
+                self.viewer.add_geom(car2)
+                self.viewer.add_geom(car3)
+                self.viewer.add_geom(car4)
+
+        return self.viewer.render(return_rgb_array = mode == 'rgb_array')
+
 

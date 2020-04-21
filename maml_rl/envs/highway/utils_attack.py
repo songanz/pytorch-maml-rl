@@ -15,24 +15,9 @@ import matplotlib.animation as animation
 
 """ THIS IS FOR ATTACK ONLY """
 
-def initCarsAtt(numCar, num_attacker = 1):
-
-    idxs4Attacker = -1*np.ones((6, ))
-    while np.all(idxs4Attacker[3:] == -1):
-        envCars = utils_sim.initCars(numCar)
-
-        # get the near cars index of the attacker
-        # and sway the id of one of near cars to 1 (target)
-        _, idxs4Attacker = driveFuncs.getAffordInd(envCars)
-
-    if C.T_CAR in idxs4Attacker[3:]:
-        return envCars
-
-    # randomly choose a near car as the target and make sure the target is at position 1 with id 1
-    pos4NearCar = -1
-    while pos4NearCar == -1:
-        pos4NearCar = random.sample(list(idxs4Attacker[3:]), 1)[0]
-    swap2Cars(envCars, pos4NearCar, C.T_CAR)
+def initCarsAtt(numCar):
+    # no need to put the attacker near the target agent anymore
+    envCars = utils_sim.initCars(numCar)
 
     return envCars
 
@@ -136,18 +121,6 @@ def whichLnMarker(lnNum):
         return 2
     if abs(lnNum + 2) < 2:
         return -2
-
-def swap2Cars(l, pos1, pos2):
-    # pos1 id:
-    id1 = l[pos1].id
-    id2 = l[pos2].id
-
-    # swap both the position in list and the id
-    l[pos1], l[pos2] = l[pos2], l[pos1]
-    l[pos1].id = id1
-    l[pos2].id = id2
-
-    return l
 
 def rewRespSensAtt(envCars, collisionTar, collisionAtt, id4OtherColliCar):
     """

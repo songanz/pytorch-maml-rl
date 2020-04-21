@@ -12,8 +12,7 @@ QN_IDX = 0
 TR_IDX = 1
 NUM_EP_FIXCAR = 1e4
 
-E_CAR = 0  # ego car id
-T_CAR = 1 # target car id
+T_CAR = 0 # target car id
 
 # afind indices
 E_LN = 0
