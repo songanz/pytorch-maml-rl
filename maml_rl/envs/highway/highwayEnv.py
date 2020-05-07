@@ -45,12 +45,12 @@ class HighwayEnv(gym.Env):
         self.attacker_agent = attacker()
         self.attacker_agent.to(self.device)
         pathname_trained_Att = os.path.abspath('./maml_rl/envs/highway/AttackQNet.pth.tar')
-        saved_net_Att = tr.load(pathname_trained_Att)
+        saved_net_Att = tr.load(pathname_trained_Att,  map_location=tr.device('cpu'))
         self.attacker_agent.Q_eval_net.load_state_dict(saved_net_Att['Q_eval_net'])
         self.attacker_agent.Q_eval_net.eval()
 
         # for render
-        self.viewer = rendering.Viewer(1000, 100)
+        self.viewer = None
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -175,6 +175,10 @@ class HighwayEnv(gym.Env):
                 self.viewer.close()
                 self.viewer = None
             return
+
+        # for render
+        if self.viewer is None:
+            self.viewer = rendering.Viewer(1000, 100)
 
         # for transform and scale
         scale = 5

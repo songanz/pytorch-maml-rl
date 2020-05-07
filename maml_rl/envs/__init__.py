@@ -5,7 +5,8 @@ from gym.envs.registration import register
 
 register(
     'Highway-v0',
-    entry_point='maml_rl.envs.highway.highwayEnv:HighwayEnv'
+    entry_point='maml_rl.envs.highway.highwayEnv:HighwayEnv',
+    max_episode_steps=200
 )
 
 # Bandit
