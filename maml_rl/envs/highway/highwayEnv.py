@@ -31,7 +31,7 @@ class HighwayEnv(gym.Env):
 
         # for task
         self._task = task
-        self._num_attacker = task.get('num_attacker',0)
+        self._num_attacker = task.get('num_attacker',3)
         self._num_total_car = task.get('num_total_car',20)
 
         # task sampler parameter

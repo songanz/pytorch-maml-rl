@@ -18,6 +18,7 @@ T_CAR = 0 # target car id
 E_LN = 0
 E_SP = 1
 FL_D = 2
+FL_V = 3
 FL_P = 4
 FC_D = 5
 FC_V = 6
