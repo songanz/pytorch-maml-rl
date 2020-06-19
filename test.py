@@ -1,9 +1,10 @@
 import maml_rl.envs
 import gym
 import torch
-import json
+import time
 import numpy as np
 from tqdm import trange
+import yaml
 
 from maml_rl.baseline import LinearFeatureBaseline
 from maml_rl.samplers import MultiTaskSampler
@@ -13,11 +14,18 @@ from maml_rl.utils.reinforcement_learning import get_returns
 
 def main(args):
     with open(args.config, 'r') as f:
-        config = json.load(f)
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
     if args.seed is not None:
         torch.manual_seed(args.seed)
         torch.cuda.manual_seed_all(args.seed)
+
+    if args.output_folder is not None:
+        timestr = time.strftime("%m%d%Y")
+        args.output_folder = args.output_folder + "/" + timestr
+        if not os.path.exists(args.output_folder):
+            os.makedirs(args.output_folder)
+        logs_filename = os.path.join(args.output_folder, 'logs.csv')
 
     env = gym.make(config['env-name'], **config['env-kwargs'])
     env.close()
@@ -54,6 +62,22 @@ def main(args):
                                                         gamma=config['gamma'],
                                                         gae_lambda=config['gae-lambda'],
                                                         device=args.device)
+        '''
+        MultiTaskSampler, which is responsible for sampling the trajectories, is doing adaptation locally in each worker.
+        
+        from line 270 to line 275 in multi_task_sampler.py:
+        
+        with self.policy_lock: 
+        loss = reinforce_loss(self.policy, train_episodes, params=params) 
+        params = self.policy.update_params(loss, 
+                                           params=params, 
+                                           step_size=fast_lr, 
+                                           first_order=True) 
+        
+        So in test.py, you do get both trajectories before and after adaptation with the simple call to MultiTaskSampler. 
+        And with a few changes to test.py you can even use different number of gradient steps for adaptation by changing 
+        num_steps in your call to sampler.sample().
+        '''
 
         logs['tasks'].extend(tasks)
         train_returns.append(get_returns(train_episodes[0]))
@@ -62,7 +86,7 @@ def main(args):
     logs['train_returns'] = np.concatenate(train_returns, axis=0)
     logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
 
-    with open(args.output, 'wb') as f:
+    with open(logs_filename, 'wb') as f:
         np.savez(f, **logs)
 
 
@@ -88,7 +112,7 @@ if __name__ == '__main__':
 
     # Miscellaneous
     misc = parser.add_argument_group('Miscellaneous')
-    misc.add_argument('--output', type=str, required=True,
+    misc.add_argument('--output-folder', type=str, required=True,
         help='name of the output folder (default: maml)')
     misc.add_argument('--seed', type=int, default=1,
         help='random seed (default: 1)')

@@ -1,6 +1,8 @@
 import gym
 import torch
 import json
+import csv
+import time
 import os
 import yaml
 from tqdm import trange
@@ -18,9 +20,12 @@ def main(args):
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     if args.output_folder is not None:
+        timestr = time.strftime("%m%d%Y")
+        args.output_folder = args.output_folder + "/" + timestr
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
         policy_filename = os.path.join(args.output_folder, 'policy.th')
+        logs_filename = os.path.join(args.output_folder, 'logs.csv')
         config_filename = os.path.join(args.output_folder, 'config.json')
 
         with open(config_filename, 'w') as f:
@@ -67,6 +72,7 @@ def main(args):
                                        gamma=config['gamma'],
                                        gae_lambda=config['gae-lambda'],
                                        device=args.device)
+        # logs: diction
         logs = metalearner.step(*futures,
                                 max_kl=config['max-kl'],
                                 cg_iters=config['cg-iters'],
@@ -77,7 +83,8 @@ def main(args):
         train_episodes, valid_episodes = sampler.sample_wait(futures)
         num_iterations += sum(sum(episode.lengths) for episode in train_episodes[0])
         num_iterations += sum(sum(episode.lengths) for episode in valid_episodes)
-        logs.update(tasks=tasks,
+        logs.update(batch=batch,
+                    tasks=tasks,
                     num_iterations=num_iterations,
                     train_returns=get_returns(train_episodes[0]),
                     valid_returns=get_returns(valid_episodes))
@@ -86,6 +93,15 @@ def main(args):
         if args.output_folder is not None:
             with open(policy_filename, 'wb') as f:
                 torch.save(policy.state_dict(), f)
+
+        # Save logs
+        if args.output_folder is not None:
+            csv_columns = ['batch','num_iterations','tasks','train_returns','valid_returns',
+                           'loss_before','kl_before','loss_after','kl_after']
+            with open(logs_filename, 'w') as f:
+                writer = csv.DictWriter(f, fieldnames=csv_columns)
+                writer.writeheader()
+                writer.writerow(logs)
 
 
 if __name__ == '__main__':
