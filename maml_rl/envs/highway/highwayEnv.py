@@ -95,7 +95,7 @@ class HighwayEnv(gym.Env):
 
         if self._num_attacker == 0:
 
-            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)  # set action for the ego car
+            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)  # set action for the ego car (target)
 
             driveFuncs.setAction(self.envCars[1:], idC[1:, :])  # set actions for env cars
             driveFuncs.appAction(self.envCars)  # Apply actions
@@ -114,6 +114,14 @@ class HighwayEnv(gym.Env):
                 Q, _, _ = self.attacker_agent.Q_eval_net(
                     Variable(tr.from_numpy(s0_i_attacker).to(self.device), requires_grad=False).float()[None, ...])
                 attacker_i_action = int(tr.argmax(Q))
+
+                # safety check for the attackers
+                new_attacker_i_action, _ = driveFuncs.safeAct2(attacker_i_action, idC[i, :])
+
+                # change the action according to safety check
+                if new_attacker_i_action != attacker_i_action:
+                    # saftey controller overrides the first choice, set the original action for collision
+                    attacker_i_action = new_attacker_i_action
 
                 # set the action for each attacker in this env
                 # don't be confused by the function name
@@ -159,7 +167,7 @@ class HighwayEnv(gym.Env):
     def reset(self):
 
         # reset the environement
-        self.envCars = initCarsAtt(self._num_total_car)
+        self.envCars = initCarsAtt(self._num_total_car, self._num_attacker)
         idC, _= driveFuncs.getAffordInd(self.envCars)
         observation = driveFuncs.scaleState(idC[C.T_CAR, :])
 

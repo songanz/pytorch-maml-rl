@@ -10,7 +10,7 @@ def placeCars(envCars):
     if len(envCars) > 15:
         MAX_DIST = params.SIM_MAX_DISTANCE*2
     else:
-        MAX_DIST = params.SIM_MAX_DISTANCE
+        MAX_DIST = params.SIM_MAX_DISTANCE  # params.SIM_MAX_DISTANCE = 240
     for i in range(1, len(envCars)):
         laneOverlap = True
         while laneOverlap:

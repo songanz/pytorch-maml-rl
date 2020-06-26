@@ -25,7 +25,7 @@ def main(args):
         args.output_folder = args.output_folder + "/" + timestr
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
-        logs_filename = os.path.join(args.output_folder, 'logs.csv')
+        logs_filename = os.path.join(args.output_folder, 'logs')
 
     env = gym.make(config['env-name'], **config['env-kwargs'])
     env.close()
@@ -83,6 +83,9 @@ def main(args):
         train_returns.append(get_returns(train_episodes[0]))
         valid_returns.append(get_returns(valid_episodes))
 
+        with open(logs_filename, 'wb') as f:
+            np.savez(f, **logs)
+
     logs['train_returns'] = np.concatenate(train_returns, axis=0)
     logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
 
@@ -109,6 +112,12 @@ if __name__ == '__main__':
         help='number of batches (default: 10)')
     evaluation.add_argument('--meta-batch-size', type=int, default=40,
         help='number of tasks per batch (default: 40)')
+
+    '''
+    --num-batches: total evaluation tasks batches
+    --meta-batch-size: number of tasks per batch
+    --fast-batch-size: from config file --> Number of trajectories to sample for each task
+    '''
 
     # Miscellaneous
     misc = parser.add_argument_group('Miscellaneous')

@@ -7,11 +7,37 @@ from .Car import Car
 
 """ THIS IS FOR ATTACK ONLY """
 
-def initCarsAtt(numCar):
+def initCarsAtt(numCar, numAtt):
     # no need to put the attacker near the target agent anymore
     envCars = initCars(numCar)
+    envCars = insertion_sort(envCars, numAtt)
 
     return envCars
+
+def insertion_sort(envCars, numAtt):
+    for i in range(1, numAtt+1):
+        minIndx = i
+        dist2Target = envCars[i].xPos ** 2 + envCars[i].yPos ** 2
+        for j in range(i, len(envCars)):
+            curDis2Tar = envCars[j].xPos ** 2 + envCars[j].yPos ** 2
+            if curDis2Tar < dist2Target:
+                dist2Target = curDis2Tar
+                minIndx = j
+        swap2Cars(envCars, i, minIndx)
+
+    return envCars
+
+def swap2Cars(l, pos1, pos2):
+    # pos1 id:
+    id1 = l[pos1].id
+    id2 = l[pos2].id
+
+    # swap both the position in list and the id
+    l[pos1], l[pos2] = l[pos2], l[pos1]
+    l[pos1].id = id1
+    l[pos2].id = id2
+
+    return l
 
 def initCars(numCar):
     # create new instance of car every episode

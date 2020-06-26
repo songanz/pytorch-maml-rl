@@ -25,7 +25,7 @@ def main(args):
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
         policy_filename = os.path.join(args.output_folder, 'policy.th')
-        logs_filename = os.path.join(args.output_folder, 'logs.csv')
+        logs_filename = os.path.join(args.output_folder, 'log')
         config_filename = os.path.join(args.output_folder, 'config.json')
 
         with open(config_filename, 'w') as f:
