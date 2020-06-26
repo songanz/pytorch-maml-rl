@@ -33,6 +33,7 @@ class HighwayEnv(gym.Env):
         self._task = task
         self._num_attacker = task.get('num_attacker',3)
         self._num_total_car = task.get('num_total_car',20)
+        self._traffic_density = task.get('traffic_density', 1)
 
         # task sampler parameter
         self.low_cars = low_cars  # lower bound for the number of total cars
@@ -59,9 +60,13 @@ class HighwayEnv(gym.Env):
     def sample_tasks(self, num_tasks):
         num_attackers = self.np_random.randint(self.low_att, self.high_att, size=(num_tasks,))
         num_total_cars = self.np_random.randint(self.low_cars, self.high_cars, size=(num_tasks,))
+        traffic_densities = self.np_random.random_sample(size=(num_tasks,)) + 0.5  # from 0.5 to 1.5
 
-        tasks = [{'num_attacker':num_attacker, 'num_total_car': num_total_car}
-                 for (num_attacker, num_total_car) in zip(num_attackers, num_total_cars)]
+        tasks = [{'num_attacker':num_attacker,
+                  'num_total_car': num_total_car,
+                  'traffic_density': traffic_density}
+                 for (num_attacker, num_total_car, traffic_density)
+                 in zip(num_attackers, num_total_cars, traffic_densities)]
 
         return tasks
 
@@ -71,6 +76,7 @@ class HighwayEnv(gym.Env):
         self._task = task
         self._num_attacker = task['num_attacker']
         self._num_total_car = task['num_total_car']
+        self._traffic_density = task['traffic_density']
 
     def step(self, action):
         # number of attackers is in the self._num_attacker
@@ -100,7 +106,7 @@ class HighwayEnv(gym.Env):
             driveFuncs.setAction(self.envCars[1:], idC[1:, :])  # set actions for env cars
             driveFuncs.appAction(self.envCars)  # Apply actions
 
-        else:
+        else:  # env with attackers
             # 0: target / training agent
             # 1 ~ 1 + self._num_attacker: attacker
             attackersID = [ i for i in range(1, 1 + self._num_attacker)]
@@ -115,23 +121,30 @@ class HighwayEnv(gym.Env):
                     Variable(tr.from_numpy(s0_i_attacker).to(self.device), requires_grad=False).float()[None, ...])
                 attacker_i_action = int(tr.argmax(Q))
 
-                # safety check for the attackers
-                new_attacker_i_action, _ = driveFuncs.safeAct2(attacker_i_action, idC[i, :])
+                #constraint on the action of the attacker for more efficient attacking
+                lnAtt = idC[i, C.E_LN]
+                if lnAtt == params.ROAD_RIGHT_LANE:
+                    # on right lane
+                    if attacker_i_action == C.A_BR or attacker_i_action == C.A_MR:
+                        attacker_i_action = C.A_MM
 
-                # change the action according to safety check
-                if new_attacker_i_action != attacker_i_action:
-                    # saftey controller overrides the first choice, set the original action for collision
-                    attacker_i_action = new_attacker_i_action
+                elif lnAtt == params.ROAD_LEFT_LANE:
+                    # on left lane
+                    if attacker_i_action == C.A_BL or attacker_i_action == C.A_ML:
+                        attacker_i_action = C.A_MM
 
                 # set the action for each attacker in this env
                 # don't be confused by the function name
                 driveFuncs.setEgoCarAction(self.envCars[i], attacker_i_action)
 
-            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)  # set action for the target car
+            # set action for the target car
+            driveFuncs.setEgoCarAction(self.envCars[C.T_CAR], action)
 
             # set actions for other env cars
             driveFuncs.setAction(self.envCars[1+self._num_attacker:], idC[1+self._num_attacker:, :])
-            driveFuncs.appAction(self.envCars)  # Apply actions
+
+            # Apply actions
+            driveFuncs.appAction(self.envCars)
 
 
         """ After applied the actions for all envCars, get the observation and reward """
