@@ -1,7 +1,7 @@
 import gym
 import torch
 import json
-import csv
+import numpy as np
 import time
 import os
 import yaml
@@ -25,7 +25,7 @@ def main(args):
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
         policy_filename = os.path.join(args.output_folder, 'policy.th')
-        logs_filename = os.path.join(args.output_folder, 'log')
+        logs_filename = os.path.join(args.output_folder, 'logs')
         config_filename = os.path.join(args.output_folder, 'config.json')
 
         with open(config_filename, 'w') as f:
@@ -96,12 +96,8 @@ def main(args):
 
         # Save logs
         if args.output_folder is not None:
-            csv_columns = ['batch','num_iterations','tasks','train_returns','valid_returns',
-                           'loss_before','kl_before','loss_after','kl_after']
-            with open(logs_filename, 'w') as f:
-                writer = csv.DictWriter(f, fieldnames=csv_columns)
-                writer.writeheader()
-                writer.writerow(logs)
+            with open(logs_filename, 'wb') as f:
+                np.savez(f, **logs)
 
 
 if __name__ == '__main__':
