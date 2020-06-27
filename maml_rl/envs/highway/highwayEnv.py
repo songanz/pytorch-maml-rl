@@ -2,7 +2,7 @@ import gym
 
 from gym import spaces
 from gym.utils import seeding
-from gym.envs.classic_control import rendering
+from gym.envs.classic_control import rendering  # for HPC: comment this line
 
 from .utils_attack import *
 from .attacker import *
@@ -186,6 +186,7 @@ class HighwayEnv(gym.Env):
 
         return observation
 
+    # for HPC: remove this function
     def render(self, mode='human', close=False):
 
         # horizotal: x axis; vertical: y axis

@@ -83,6 +83,7 @@ def main(args):
         train_episodes, valid_episodes = sampler.sample_wait(futures)
         num_iterations += sum(sum(episode.lengths) for episode in train_episodes[0])
         num_iterations += sum(sum(episode.lengths) for episode in valid_episodes)
+        # batch is training process
         logs.update(batch=batch,
                     tasks=tasks,
                     num_iterations=num_iterations,
@@ -91,12 +92,12 @@ def main(args):
 
         # Save policy
         if args.output_folder is not None:
-            with open(policy_filename, 'wb') as f:
+            with open(policy_filename + str(batch), 'wb') as f:
                 torch.save(policy.state_dict(), f)
 
         # Save logs
         if args.output_folder is not None:
-            with open(logs_filename, 'wb') as f:
+            with open(logs_filename + str(batch), 'wb') as f:
                 np.savez(f, **logs)
 
 
