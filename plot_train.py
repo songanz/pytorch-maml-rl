@@ -37,14 +37,29 @@ for i in range(499):
 n = np.size(train_returns, axis=0)
 train_returns_plot = np.zeros(train_returns.size)
 valid_returns_plot = np.zeros(valid_returns.size)
+loss_after_plot = np.zeros(loss_after.size)
+loss_before_plot = np.zeros(loss_before.size)
 for i in range(n-50):
     train_returns_plot[i] = np.mean(train_returns[i:i+50])
     valid_returns_plot[i] = np.mean(valid_returns[i:i+50])
+    loss_after_plot[i] = np.mean(loss_after[i:i+50])
+    loss_before_plot[i] = np.mean(loss_before[i:i+50])
 
 x = np.linspace(1,n-50, num=n-50)
 
-plt.plot(x,train_returns_plot[:-50], 'r',label='before adaptation')
-plt.plot(x, valid_returns_plot[:-50], 'b', label='after adaptation')
+# plot returns of before adaptation and after adaptation
+f = plt.figure(1)
+plt.plot(x, train_returns_plot[:-50], 'r',label='returns before adaptation')
+plt.plot(x, valid_returns_plot[:-50], 'b', label='returns after adaptation')
 plt.legend(loc="lower right")
-plt.show()
+f.show()
+
+
+# plot loss before adaptation and after adaptation
+g = plt.figure(2)
+plt.plot(x, loss_before_plot[:-50], 'r',label='loss before adaptation')
+plt.plot(x, loss_after_plot[:-50], 'b', label='loss after adaptation')
+plt.legend(loc="lower right")
+g.show()
+
 # sleep(0.1)

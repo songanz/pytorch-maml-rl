@@ -21,11 +21,9 @@ def main(args):
         torch.cuda.manual_seed_all(args.seed)
 
     if args.output_folder is not None:
-        timestr = time.strftime("%m%d%Y")
-        args.output_folder = args.output_folder + "/" + timestr
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
-        logs_filename = os.path.join(args.output_folder, 'logs')
+        logs_filename = os.path.join(args.output_folder, 'logs_eval')
 
     env = gym.make(config['env-name'], **config['env-kwargs'])
     env.close()
@@ -99,14 +97,14 @@ def main(args):
             exec("after_%s_gradient_step.append(get_returns(train_episodes[%i]))" % (i,i))
 
 
-    logs['train_returns'] = np.concatenate(train_returns, axis=0)
-    logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
+        logs['train_returns'] = np.concatenate(train_returns, axis=0)
+        logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
 
-    for i in range(config['num-steps']):
-        exec("logs['after_%s_gradient_step'] = np.concatenate(after_%s_gradient_step, axis=0)" % (i,i))
+        for i in range(config['num-steps']):
+            exec("logs['after_%s_gradient_step'] = np.concatenate(after_%s_gradient_step, axis=0)" % (i,i))
 
-    with open(logs_filename, 'wb') as f:
-        np.savez(f, **logs)
+        with open(logs_filename, 'wb') as f:
+            np.savez(f, **logs)
 
 
 if __name__ == '__main__':

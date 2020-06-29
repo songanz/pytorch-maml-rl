@@ -24,8 +24,6 @@ def main(args):
         args.output_folder = args.output_folder + "/" + timestr
         if not os.path.exists(args.output_folder):
             os.makedirs(args.output_folder)
-        policy_filename = os.path.join(args.output_folder, 'policy.th')
-        logs_filename = os.path.join(args.output_folder, 'logs')
         config_filename = os.path.join(args.output_folder, 'config.json')
 
         with open(config_filename, 'w') as f:
@@ -100,12 +98,14 @@ def main(args):
 
         # Save policy
         if args.output_folder is not None:
-            with open(policy_filename + str(batch), 'wb') as f:
+            policy_filename = os.path.join(args.output_folder, 'policy' + str(batch) + '.th')
+            with open(policy_filename, 'wb') as f:
                 torch.save(policy.state_dict(), f)
 
         # Save logs
         if args.output_folder is not None:
-            with open(logs_filename + str(batch), 'wb') as f:
+            logs_filename = os.path.join(args.output_folder, 'logs' + str(batch))
+            with open(logs_filename, 'wb') as f:
                 np.savez(f, **logs)
 
 
