@@ -23,7 +23,7 @@ def main(args):
         timestr = time.strftime("%m%d%Y")
         args.output_folder = args.output_folder + "/" + timestr
         if not os.path.exists(args.output_folder):
-            os.makedirs(args.output_folder)
+            os.makedirs(args.output_folder, exist_ok=True)
         config_filename = os.path.join(args.output_folder, 'config.json')
 
         with open(config_filename, 'w') as f:

@@ -22,7 +22,7 @@ def main(args):
 
     if args.output_folder is not None:
         if not os.path.exists(args.output_folder):
-            os.makedirs(args.output_folder)
+            os.makedirs(args.output_folder, exist_ok=True)
         logs_filename = os.path.join(args.output_folder, 'logs_eval')
 
     env = gym.make(config['env-name'], **config['env-kwargs'])
