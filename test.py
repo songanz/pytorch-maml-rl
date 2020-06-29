@@ -54,15 +54,21 @@ def main(args):
 
     logs = {'tasks': []}
     train_returns, valid_returns = [], []
+    for i in range(config['num-steps']):
+        exec("after_%s_gradient_step=[]" % i)
+
     for batch in trange(args.num_batches):
         tasks = sampler.sample_tasks(num_tasks=args.meta_batch_size)
-        train_episodes, valid_episodes = sampler.sample(tasks,
-                                                        num_steps=config['num-steps'],
-                                                        fast_lr=config['fast-lr'],
-                                                        gamma=config['gamma'],
-                                                        gae_lambda=config['gae-lambda'],
-                                                        device=args.device)
         '''
+        train_episodes is a list whose length is the number of gradient steps, 
+        and each element is also a list of length meta_batch_size containing the different episodes. 
+        For example, train_episodes[0] contains the episodes before any gradient update, 
+        train_episodes[1] the episodes after 1 gradient update (if the number of steps of adaptation is > 1), and so on.
+        
+        valid_episodes is a list containing the episodes after all the steps of adaptation.
+        
+        
+        
         MultiTaskSampler, which is responsible for sampling the trajectories, is doing adaptation locally in each worker.
         
         from line 270 to line 275 in multi_task_sampler.py:
@@ -78,16 +84,26 @@ def main(args):
         And with a few changes to test.py you can even use different number of gradient steps for adaptation by changing 
         num_steps in your call to sampler.sample().
         '''
+        train_episodes, valid_episodes = sampler.sample(tasks,
+                                                        num_steps=config['num-steps'],
+                                                        fast_lr=config['fast-lr'],
+                                                        gamma=config['gamma'],
+                                                        gae_lambda=config['gae-lambda'],
+                                                        device=args.device)
 
         logs['tasks'].extend(tasks)
         train_returns.append(get_returns(train_episodes[0]))
         valid_returns.append(get_returns(valid_episodes))
 
-        with open(logs_filename, 'wb') as f:
-            np.savez(f, **logs)
+        for i in range(config['num-steps']):
+            exec("after_%s_gradient_step.append(get_returns(train_episodes[%i]))" % (i,i))
+
 
     logs['train_returns'] = np.concatenate(train_returns, axis=0)
     logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
+
+    for i in range(config['num-steps']):
+        exec("logs['after_%s_gradient_step'] = np.concatenate(after_%s_gradient_step, axis=0)" % (i,i))
 
     with open(logs_filename, 'wb') as f:
         np.savez(f, **logs)

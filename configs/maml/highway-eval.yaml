@@ -33,7 +33,7 @@ nonlinearity: "tanh"
 fast-batch-size: 20
 
 # Number of gradient steps in the inner loop / fast adaptation.
-num-steps: 1
+num-steps: 10
 
 # Step size for each gradient step in the inner loop / fast adaptation.
 fast-lr: 0.1

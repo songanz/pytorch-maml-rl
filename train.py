@@ -80,6 +80,14 @@ def main(args):
                                 ls_max_steps=config['ls-max-steps'],
                                 ls_backtrack_ratio=config['ls-backtrack-ratio'])
 
+        '''
+        train_episodes is a list whose length is the number of gradient steps, 
+        and each element is also a list of length meta_batch_size containing the different episodes. 
+        For example, train_episodes[0] contains the episodes before any gradient update, 
+        train_episodes[1] the episodes after 1 gradient update (if the number of steps of adaptation is > 1), and so on.
+
+        valid_episodes is a list containing the episodes after all the steps of adaptation.
+        '''
         train_episodes, valid_episodes = sampler.sample_wait(futures)
         num_iterations += sum(sum(episode.lengths) for episode in train_episodes[0])
         num_iterations += sum(sum(episode.lengths) for episode in valid_episodes)
