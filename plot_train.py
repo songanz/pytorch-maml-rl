@@ -28,9 +28,9 @@ def data_process(input_folder, total_batches=100):
 
         # train_episodes: after gradient steps
         # valid_episodes: without gradient steps
-        train_return = np.average(data[data.files[7]], axis=0)
+        train_return = np.average(data[data.files[7]], axis=1)
         train_returns = np.concatenate((train_returns, train_return), axis=0)
-        valid_return = np.average(data[data.files[8]], axis=0)
+        valid_return = np.average(data[data.files[8]], axis=1)
         valid_returns = np.concatenate((valid_returns, valid_return), axis=0)
 
     # moving average
@@ -59,27 +59,30 @@ input_folders = ['maml-highway/batch100x40/06292020/',
                  'maml-highway/lr001/06292020/']
 
 # plot returns of before adaptation and after adaptation
-f = plt.figure(1)
+f = plt.figure(figsize=(10,8))
 for folder in input_folders:
     x, train_returns_plot, valid_returns_plot, _, _, _ = data_process(folder)
 
-    # plt.plot(x, train_returns_plot[:-50], label=folder + ' before adaptation')
-    plt.plot(x, valid_returns_plot[:-50], label=folder + ' after adaptation')
+    plt.plot(x[-100:], train_returns_plot[-150:-50], label=folder + ' before adaptation')
+    plt.plot(x[-100:], valid_returns_plot[-150:-50], label=folder + ' after adaptation')
+
+# x, train_returns_plot, valid_returns_plot, _, _, _ = data_process('maml-highway/06272020/', total_batches=500)
+# plt.plot(x[-100:], valid_returns_plot[-150:-50], label='maml-highway/06272020/' + ' after adaptation')
 
 plt.title('Returns before and after adaptation')
-plt.legend(loc="lower right")
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
 f.show()
 
 # plot loss before adaptation and after adaptation
-g = plt.figure(2)
+g = plt.figure(figsize=(10,8))
 for folder in input_folders:
     _,_,_, y, loss_before_plot, loss_after_plot = data_process(folder)
 
-    # plt.plot(y, loss_before_plot[:-50], label=folder + ' before adaptation')
+    plt.plot(y, loss_before_plot[:-50], label=folder + ' before adaptation')
     plt.plot(y, loss_after_plot[:-50], label=folder + ' after adaptation')
 
 plt.title('Loss before and after adaptation')
-plt.legend(loc="lower right")
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
 g.show()
 
 # sleep(0.1)
