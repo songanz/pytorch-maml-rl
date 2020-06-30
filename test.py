@@ -1,7 +1,6 @@
 import maml_rl.envs
 import gym
 import torch
-import time
 import numpy as np
 from tqdm import trange
 import yaml

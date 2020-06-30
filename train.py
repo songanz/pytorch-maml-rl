@@ -7,6 +7,7 @@ import os
 import yaml
 from tqdm import trange
 
+# todo: cProfile set up
 import maml_rl.envs
 from maml_rl.metalearners import MAMLTRPO
 from maml_rl.baseline import LinearFeatureBaseline
