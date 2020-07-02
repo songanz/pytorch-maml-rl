@@ -2,7 +2,7 @@ from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = np.load('maml-highway/06272020/logs_eval')
+data = np.load('maml-highway/batch100x40/06292020/logs_eval')
 
 variables = data.files
 tasks = data[variables[0]]

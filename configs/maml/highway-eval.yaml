@@ -17,7 +17,7 @@ gamma: 0.9
 gae-lambda: 1.0
 
 # If "true", then the first order approximation of MAML is applied.
-first-order: false
+first-order: true
 
 # Policy network
 # --------------
@@ -36,4 +36,4 @@ fast-batch-size: 20
 num-steps: 10
 
 # Step size for each gradient step in the inner loop / fast adaptation.
-fast-lr: 0.01
+fast-lr: 0.1

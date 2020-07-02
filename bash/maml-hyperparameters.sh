@@ -7,7 +7,6 @@
 #SBATCH --job-name=maml-hyperparameters
 #SBATCH --nodes=8
 #SBATCH --cpus-per-task=8
-#SBATCH --ntasks-per-node=8
 #SBATCH --mem-per-cpu=2GB
 #SBATCH --time=100:00:00
 #SBATCH --account=hpeng1
