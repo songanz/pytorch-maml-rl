@@ -23,6 +23,7 @@ class HighwayEnv(gym.Env):
 
         # env init
         self.envCars = []
+        self.safeCheck =  True  # for short horizon safety check of the host vehicle
 
         # seed
         self.np_random = seeding.np_random()
@@ -86,17 +87,18 @@ class HighwayEnv(gym.Env):
         # store the state for the current time step
         idC, _ = driveFuncs.getAffordInd(self.envCars)
 
-        # safety check
-        newAct, rstPrfAct = driveFuncs.safeAct2(action, idC[C.T_CAR, :])
+        if self.safeCheck:
+            # safety check
+            newAct, rstPrfAct = driveFuncs.safeAct2(action, idC[C.T_CAR, :])
 
-        # change the action according to safety check
-        if newAct != action:
-            # saftey controller overrides the first choice, set the original action for collision
-            # print('safe action')
-            action, actOld = newAct, action
-            safeAct = True  # safety action was chosen
-        else:
-            safeAct = False
+            # change the action according to safety check
+            if newAct != action:
+                # saftey controller overrides the first choice, set the original action for collision
+                # print('safe action')
+                action, actOld = newAct, action
+                safeAct = True  # safety action was chosen
+            else:
+                safeAct = False
 
         if self._num_attacker == 0:
 
@@ -120,7 +122,7 @@ class HighwayEnv(gym.Env):
                     Variable(tr.from_numpy(s0_i_attacker).to(self.device), requires_grad=False).float()[None, ...])
                 attacker_i_action = int(tr.argmax(Q))
 
-                #constraint on the action of the attacker for more efficient attacking
+                # constraint on the action of the attacker for more efficient attacking
                 lnAtt = idC[i, C.E_LN]
                 if lnAtt == params.ROAD_RIGHT_LANE:
                     # on right lane
@@ -156,7 +158,7 @@ class HighwayEnv(gym.Env):
         s1 = driveFuncs.scaleState(eIDC_N)
         rewV, rewY, rewX, cf_d, maxV, disY, eV, cf_v, midDis = driveFuncs.getRewCmp(eIDC_N)
 
-        if safeAct:
+        if self.safeCheck and safeAct:
             if action != C.A_MM:
                 reward = -0.1
             else:

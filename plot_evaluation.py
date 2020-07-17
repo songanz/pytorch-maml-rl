@@ -2,7 +2,10 @@ from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
 
-data = np.load('maml-highway/batch100x40/06292020/logs_eval')
+# data = np.load('maml-highway/No_safetyCheck_batch100x40/07152020/logs_eval')
+# data = np.load('maml-highway/No_safetyCheck_first_order_app/07152020/logs_eval')
+# data = np.load('maml-highway/No_safetyCheck_lr01/07152020/logs_eval')
+data = np.load('maml-highway/No_safetyCheck_lr001/07152020/logs_eval')
 
 variables = data.files
 tasks = data[variables[0]]

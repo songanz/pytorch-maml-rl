@@ -53,36 +53,39 @@ def data_process(input_folder, total_batches=100):
 
     return xx, train_returns_p, valid_returns_p, yy, loss_before_p, loss_after_p
 
-input_folders = ['maml-highway/batch100x40/06292020/',
-                 'maml-highway/first_order_app/06292020/',
-                 'maml-highway/lr01/06292020/',
-                 'maml-highway/lr001/06292020/']
+if __name__ == '__main__':
 
-# plot returns of before adaptation and after adaptation
-f = plt.figure(figsize=(10,8))
-for folder in input_folders:
-    x, train_returns_plot, valid_returns_plot, _, _, _ = data_process(folder)
+    input_folders = [
+                     # 'maml-highway/No_safetyCheck_batch100x40/07152020/',
+                     # 'maml-highway/No_safetyCheck_first_order_app/07152020/',
+                     # 'maml-highway/No_safetyCheck_lr01/07152020/',
+                     'maml-highway/No_safetyCheck_lr001/07152020/']
 
-    plt.plot(x[-100:], train_returns_plot[-150:-50], label=folder + ' before adaptation')
-    plt.plot(x[-100:], valid_returns_plot[-150:-50], label=folder + ' after adaptation')
+    # plot returns of before adaptation and after adaptation
+    f = plt.figure(figsize=(10,8))
+    for folder in input_folders:
+        x, train_returns_plot, valid_returns_plot, _, _, _ = data_process(folder)
 
-# x, train_returns_plot, valid_returns_plot, _, _, _ = data_process('maml-highway/06272020/', total_batches=500)
-# plt.plot(x[-100:], valid_returns_plot[-150:-50], label='maml-highway/06272020/' + ' after adaptation')
+        plt.plot(x[-100:], train_returns_plot[-150:-50], label=folder + ' before adaptation')
+        plt.plot(x[-100:], valid_returns_plot[-150:-50], label=folder + ' after adaptation')
 
-plt.title('Returns before and after adaptation')
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
-f.show()
+    # x, train_returns_plot, valid_returns_plot, _, _, _ = data_process('maml-highway/06272020/', total_batches=500)
+    # plt.plot(x[-100:], valid_returns_plot[-150:-50], label='maml-highway/06272020/' + ' after adaptation')
 
-# plot loss before adaptation and after adaptation
-g = plt.figure(figsize=(10,8))
-for folder in input_folders:
-    _,_,_, y, loss_before_plot, loss_after_plot = data_process(folder)
+    plt.title('Returns before and after adaptation')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
+    f.show()
 
-    plt.plot(y, loss_before_plot[:-50], label=folder + ' before adaptation')
-    plt.plot(y, loss_after_plot[:-50], label=folder + ' after adaptation')
+    # plot loss before adaptation and after adaptation
+    g = plt.figure(figsize=(10,8))
+    for folder in input_folders:
+        _,_,_, y, loss_before_plot, loss_after_plot = data_process(folder)
 
-plt.title('Loss before and after adaptation')
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
-g.show()
+        plt.plot(y, loss_before_plot[:-50], label=folder + ' before adaptation')
+        plt.plot(y, loss_after_plot[:-50], label=folder + ' after adaptation')
 
-# sleep(0.1)
+    plt.title('Loss before and after adaptation')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05))
+    g.show()
+
+    # sleep(0.1)

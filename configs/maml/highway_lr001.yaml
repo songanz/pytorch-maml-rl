@@ -41,7 +41,7 @@ fast-lr: 0.001
 # Optimization
 # ------------
 # Number of outer-loop updates (ie. number of batches of tasks).
-num-batches: 100
+num-batches: 1000
 
 # Number of tasks in each batch of tasks.
 meta-batch-size: 40
