@@ -56,18 +56,21 @@ def data_process(input_folder, total_batches=100):
 if __name__ == '__main__':
 
     input_folders = [
-                     # 'maml-highway/No_safetyCheck_batch100x40/07152020/',
-                     # 'maml-highway/No_safetyCheck_first_order_app/07152020/',
-                     # 'maml-highway/No_safetyCheck_lr01/07152020/',
-                     'maml-highway/No_safetyCheck_lr001/07152020/']
+                     # 'maml-highway/No_safetyCheck/07172020/',
+                     # 'maml-highway/No_safetyCheck_first_order_app/07172020/',
+                     'maml-highway/06272020/',
+                     # 'maml-highway/No_safetyCheck_lr01/07172020/']
+                     'maml-highway/No_safetyCheck_lr001/07172020/']
 
     # plot returns of before adaptation and after adaptation
     f = plt.figure(figsize=(10,8))
     for folder in input_folders:
         x, train_returns_plot, valid_returns_plot, _, _, _ = data_process(folder)
 
-        plt.plot(x[-100:], train_returns_plot[-150:-50], label=folder + ' before adaptation')
-        plt.plot(x[-100:], valid_returns_plot[-150:-50], label=folder + ' after adaptation')
+        # plt.plot(x[-100:], train_returns_plot[-150:-50], label=folder + ' before adaptation')
+        plt.plot(x, train_returns_plot[:-50], label=folder + ' before adaptation')
+        # plt.plot(x[-100:], valid_returns_plot[-150:-50], label=folder + ' after adaptation')
+        plt.plot(x, valid_returns_plot[:-50], label=folder + ' after adaptation')
 
     # x, train_returns_plot, valid_returns_plot, _, _, _ = data_process('maml-highway/06272020/', total_batches=500)
     # plt.plot(x[-100:], valid_returns_plot[-150:-50], label='maml-highway/06272020/' + ' after adaptation')

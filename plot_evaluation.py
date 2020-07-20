@@ -1,11 +1,13 @@
 from time import sleep
 import numpy as np
 import matplotlib.pyplot as plt
+from maml_rl.utils.reinforcement_learning import *
 
+# data = np.load('maml-highway/No_safetyCheck/07172020/logs_eval')
 # data = np.load('maml-highway/No_safetyCheck_batch100x40/07152020/logs_eval')
 # data = np.load('maml-highway/No_safetyCheck_first_order_app/07152020/logs_eval')
-# data = np.load('maml-highway/No_safetyCheck_lr01/07152020/logs_eval')
-data = np.load('maml-highway/No_safetyCheck_lr001/07152020/logs_eval')
+data = np.load('maml-highway/No_safetyCheck_lr01/07172020/logs_eval')
+# data = np.load('maml-highway/No_safetyCheck_lr001/07152020/logs_eval')
 
 variables = data.files
 tasks = data[variables[0]]
