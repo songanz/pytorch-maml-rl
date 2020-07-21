@@ -36,4 +36,4 @@ def reinforce_loss(policy, episodes, params=None):
     losses = -weighted_mean(log_probs * episodes.advantages,
                             lengths=episodes.lengths)
 
-    return losses.mean()
+    return losses.mean() - weighted_mean(pi.entropy()).mean()
