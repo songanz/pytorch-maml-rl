@@ -66,8 +66,10 @@ if __name__ == '__main__':
                      # 'maml-highway/No_safetyCheck/07172020/',
                      # 'maml-highway/No_safetyCheck/first_order_app/07172020/',
                      # 'maml-highway/06272020/',
-                     'maml-highway/No_safetyCheck/07152020/',
-                     'maml-highway/No_safetyCheck/entropyBonus/07202020/'
+                     # 'maml-highway/06292020/',
+                     # 'maml-highway/No_safetyCheck/07152020/',
+                     # 'maml-highway/No_safetyCheck/entropyBonus/07202020/',
+                     'maml-highway/optuna-best/08042020/'
                      # 'maml-highway/No_safetyCheck/lr01/07172020/'
                      # 'maml-highway/No_safetyCheck/entropyBonus/lr01/07202020/',
                      # 'maml-highway/No_safetyCheck/lr001/07172020/',

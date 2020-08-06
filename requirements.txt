@@ -3,3 +3,4 @@ gym[mujoco]>=0.15
 tqdm>=4.0
 pyyaml>=5.1
 numpy
+optuna

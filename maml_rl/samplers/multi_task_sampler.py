@@ -165,6 +165,7 @@ class MultiTaskSampler(Sampler):
 
     def _start_consumer_threads(self, tasks, num_steps=1):
         # Start train episodes consumer thread
+        # before adaptation
         train_episodes_futures = [[self._event_loop.create_future() for _ in tasks]
                                   for _ in range(num_steps)]
         self._train_consumer_thread = threading.Thread(target=_create_consumer,
@@ -175,6 +176,7 @@ class MultiTaskSampler(Sampler):
         self._train_consumer_thread.start()
 
         # Start valid episodes consumer thread
+        # after adaptation
         valid_episodes_futures = [self._event_loop.create_future() for _ in tasks]
         self._valid_consumer_thread = threading.Thread(target=_create_consumer,
             args=(self.valid_episodes_queue, valid_episodes_futures),
