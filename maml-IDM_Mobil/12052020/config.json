@@ -1,0 +1,32 @@
+{
+  "num_workers": 8,
+  "fast-lr": 0.1,
+  "seed": 1,
+  "hidden-sizes": [
+    128,
+    128
+  ],
+  "cg-iters": 10,
+  "first-order": false,
+  "config": "configs/maml/IDM_Mobil.yaml",
+  "gamma": 0.9,
+  "num-steps": 1,
+  "device": "cpu",
+  "ls-max-steps": 15,
+  "num-batches": 100,
+  "meta-batch-size": 40,
+  "nonlinearity": "tanh",
+  "env-kwargs": {
+    "n_tasks": 10,
+    "high_cars": 50,
+    "low_cars": 30
+  },
+  "output_folder": "maml-IDM_Mobil/12052020",
+  "use_cuda": false,
+  "fast-batch-size": 20,
+  "cg-damping": 1e-05,
+  "gae-lambda": 1.0,
+  "max-kl": 0.01,
+  "env-name": "IDMMobil-v0",
+  "ls-backtrack-ratio": 0.8
+}

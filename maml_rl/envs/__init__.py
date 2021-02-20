@@ -4,6 +4,16 @@ from gym.envs.registration import register
 # ----------------------------------------
 
 register(
+    'IDMMobil-v0',
+    entry_point='maml_rl.envs.IDM_Mobil.IDMMobilEnv:IDM_MOBIL',
+    max_episode_steps=200
+)
+
+
+# Highway env
+# ----------------------------------------
+
+register(
     'Highway-v0',
     entry_point='maml_rl.envs.highway.highwayEnv:HighwayEnv',
     max_episode_steps=200

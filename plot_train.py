@@ -30,10 +30,8 @@ def data_process(input_folder, total_batches=None):
         kl_after = np.concatenate((kl_after, data[data.files[3]]), axis=0)
         # batch = data[data.files[4]]
         tasks = np.concatenate((tasks, data[data.files[5]]), axis=0)
-        # num_interations = data[data.files[6]]
+        num_interations = data[data.files[6]]
 
-        # train_episodes: after gradient steps
-        # valid_episodes: without gradient steps
         train_return = np.average(data[data.files[7]], axis=1)
         train_returns = np.concatenate((train_returns, train_return), axis=0)
         valid_return = np.average(data[data.files[8]], axis=1)

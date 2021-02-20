@@ -7,9 +7,9 @@ from .Car import Car
 
 """ THIS IS FOR ATTACK ONLY """
 
-def initCarsAtt(numCar, numAtt):
+def initCarsAtt(numCar, numAtt, traffic_density):
     # no need to put the attacker near the target agent anymore
-    envCars = initCars(numCar)
+    envCars = initCars(numCar, traffic_density)
     envCars = insertion_sort(envCars, numAtt)
 
     return envCars
@@ -39,7 +39,7 @@ def swap2Cars(l, pos1, pos2):
 
     return l
 
-def initCars(numCar):
+def initCars(numCar, traffic_density):
     # create new instance of car every episode
     envCars = []
     for nC in range(numCar):
@@ -52,7 +52,7 @@ def initCars(numCar):
     envCars[C.T_CAR].yPos = envCars[0].laneNum * params.ROAD_LN_GAP + params.ROAD_LANE_CENTER
 
     # place rest of the cars
-    driveFuncs.placeCars(envCars)
+    driveFuncs.placeCars(envCars, traffic_density)
 
     return envCars
 

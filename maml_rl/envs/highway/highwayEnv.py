@@ -23,7 +23,7 @@ class HighwayEnv(gym.Env):
 
         # env init
         self.envCars = []
-        self.safeCheck =  True  # for short horizon safety check of the host vehicle
+        self.safeCheck =  False  # for short horizon safety check of the host vehicle
 
         # seed
         self.np_random = seeding.np_random()
@@ -171,7 +171,7 @@ class HighwayEnv(gym.Env):
                 reward = 0.01
 
         if collision:
-            reward = -2  # for collision give more -ve reward
+            reward = -200  # for collision give more -ve reward
             done = True
 
         observation = s1
@@ -181,7 +181,7 @@ class HighwayEnv(gym.Env):
     def reset(self):
 
         # reset the environement
-        self.envCars = initCarsAtt(self._num_total_car, self._num_attacker)
+        self.envCars = initCarsAtt(self._num_total_car, self._num_attacker, self._traffic_density)
         idC, _= driveFuncs.getAffordInd(self.envCars)
         observation = driveFuncs.scaleState(idC[C.T_CAR, :])
 

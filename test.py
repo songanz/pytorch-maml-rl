@@ -2,7 +2,7 @@ import maml_rl.envs
 import gym
 import torch
 import numpy as np
-from tqdm import trange
+# from tqdm import trange
 import yaml
 
 from maml_rl.baseline import LinearFeatureBaseline
@@ -14,9 +14,6 @@ from maml_rl.utils.reinforcement_learning import get_returns
 def main(args):
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
-
-    # Test several update steps
-    config['num-steps'] = 10
 
     if args.seed is not None:
         torch.manual_seed(args.seed)
@@ -45,7 +42,7 @@ def main(args):
     # Sampler
     sampler = MultiTaskSampler(config['env-name'],
                                env_kwargs=config['env-kwargs'],
-                               batch_size=config['fast-batch-size'],
+                               batch_size=args.fast_batch_size,
                                policy=policy,
                                baseline=baseline,
                                env=env,
@@ -54,10 +51,10 @@ def main(args):
 
     logs = {'tasks': []}
     train_returns, valid_returns = [], []
-    for i in range(config['num-steps']):
+    for i in range(args.num_steps):
         exec("after_%s_gradient_step=[]" % i)
 
-    for batch in trange(args.num_batches):
+    for batch in range(args.num_batches):
         tasks = sampler.sample_tasks(num_tasks=args.meta_batch_size)
         '''
         train_episodes is a list whose length is the number of gradient steps, 
@@ -85,7 +82,7 @@ def main(args):
         num_steps in your call to sampler.sample().
         '''
         train_episodes, valid_episodes = sampler.sample(tasks,
-                                                        num_steps=config['num-steps'],
+                                                        num_steps=args.num_steps,
                                                         fast_lr=config['fast-lr'],
                                                         gamma=config['gamma'],
                                                         gae_lambda=config['gae-lambda'],
@@ -95,18 +92,20 @@ def main(args):
         train_returns.append(get_returns(train_episodes[0]))
         valid_returns.append(get_returns(valid_episodes))
 
-        for i in range(config['num-steps']):
+        for i in range(args.num_steps):
             exec("after_%s_gradient_step.append(get_returns(train_episodes[%i]))" % (i,i))
 
 
         logs['train_returns'] = np.concatenate(train_returns, axis=0)
         logs['valid_returns'] = np.concatenate(valid_returns, axis=0)
 
-        for i in range(config['num-steps']):
+        for i in range(args.num_steps):
             exec("logs['after_%s_gradient_step'] = np.concatenate(after_%s_gradient_step, axis=0)" % (i,i))
 
         with open(logs_filename, 'wb') as f:
             np.savez(f, **logs)
+
+        print('batch: ', batch)
 
 
 if __name__ == '__main__':
@@ -124,15 +123,20 @@ if __name__ == '__main__':
 
     # Evaluation
     evaluation = parser.add_argument_group('Evaluation')
-    evaluation.add_argument('--num-batches', type=int, default=10,
-        help='number of batches (default: 10)')
-    evaluation.add_argument('--meta-batch-size', type=int, default=40,
-        help='number of tasks per batch (default: 40)')
+    evaluation.add_argument('--num-batches', type=int, default=1,
+        help='number of batches (default: 1)')
+    evaluation.add_argument('--meta-batch-size', type=int, default=100,
+        help='number of tasks per batch (default: 100)')
+    evaluation.add_argument('--fast-batch-size', type=int, default=1,
+                            help='Number of trajectories to sample for each task (default: 1)')
+    evaluation.add_argument('--num-steps', type=int, default=10,
+                            help='Number of gradient steps in the inner loop / fast adaptation (default: 10)')
 
     '''
     --num-batches: total evaluation tasks batches
     --meta-batch-size: number of tasks per batch
-    --fast-batch-size: from config file --> Number of trajectories to sample for each task
+    --fast-batch-size: Number of trajectories to sample for each task
+    --num-steps: Number of gradient steps in the inner loop / fast adaptation
     '''
 
     # Miscellaneous

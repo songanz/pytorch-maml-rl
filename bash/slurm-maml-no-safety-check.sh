@@ -22,8 +22,8 @@ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
 cd ~/Documents/Git_repo/pytorch-maml-rl/
-srun python3 train.py --config configs/maml/highway.yaml --output-folder maml-highway/No_safetyCheck_batch100x40 --seed 1 --num-workers 8
-srun python3 train.py --config configs/maml/highway_lr01.yaml --output-folder maml-highway/No_safetyCheck_lr01 --seed 1 --num-workers 8
-srun python3 train.py --config configs/maml/highway_lr001.yaml --output-folder maml-highway/No_safetyCheck_lr001 --seed 1 --num-workers 8
-srun python3 train.py --config configs/maml/highway_first_order_app.yaml --output-folder maml-highway/No_safetyCheck_first_order_app --seed 1 --num-workers 8
+srun python3 train.py --config configs/maml/highway.yaml --output-folder maml-highway/change_reward1 --num-workers 8
+srun python3 train.py --config configs/maml/highway.yaml --output-folder maml-highway/change_reward2 --num-workers 8
+srun python3 train.py --config configs/maml/highway.yaml --output-folder maml-highway/change_reward3 --num-workers 8
+srun python3 train.py --config configs/maml/highway.yaml --output-folder maml-highway/change_reward4 --num-workers 8
 wait

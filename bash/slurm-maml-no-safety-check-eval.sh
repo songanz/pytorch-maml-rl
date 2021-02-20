@@ -11,7 +11,7 @@
 #SBATCH --time=100:00:00
 #SBATCH --account=hpeng1
 #SBATCH --partition=standard
-#SBATCH --output=slurm-output.txt
+#SBATCH --output=slurm-eval-output.txt
 
 echo "Date              = $(date)"
 echo "Hostname          = $(hostname -s)"
@@ -22,8 +22,4 @@ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
 cd ~/Documents/Git_repo/pytorch-maml-rl/
-srun python3 test.py --config configs/maml/highway.yaml --output-folder maml-highway/No_safetyCheck/07172020 --seed 1 --num-workers 8 --policy maml-highway/No_safetyCheck/07172020/policy499.th
-srun python3 test.py --config configs/maml/highway_lr01.yaml --output-folder maml-highway/No_safetyCheck_lr01/07172020 --seed 1 --num-workers 8 --policy maml-highway/No_safetyCheck_lr01/07172020/policy499.th
-srun python3 test.py --config configs/maml/highway_lr001.yaml --output-folder maml-highway/No_safetyCheck_lr001/07172020 --seed 1 --num-workers 8 --policy maml-highway/No_safetyCheck_lr001/07172020/policy499.th
-srun python3 test.py --config configs/maml/highway_first_order_app.yaml --output-folder maml-highway/No_safetyCheck_first_order_app/07172020 --seed 1 --num-workers 8 --policy maml-highway/No_safetyCheck_first_order_app/07172020/policy499.th
-wait
+srun python3 test.py --config configs/maml/highway.yaml --output-folder maml-highway/change_reward/08212020_1 --policy maml-highway/change_reward/08212020_1/policy99.th --num-batches 10000

@@ -22,4 +22,4 @@ echo "Number of Tasks Allocated      = $SLURM_NTASKS"
 echo "Number of Cores/Task Allocated = $SLURM_CPUS_PER_TASK"
 
 cd ~/Documents/Git_repo/pytorch-maml-rl/
-srun python3 train.py --config configs/maml/highway_optuna_best.yaml --output-folder maml-highway/optuna-best --seed 1 --num-workers 8
+srun python3 train.py --config configs/maml/highway_optuna_best.yaml --output-folder maml-highway/optuna-best --num-workers 8

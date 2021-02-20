@@ -1,0 +1,33 @@
+{
+  "env-name": "Highway-v0",
+  "env-kwargs": {
+    "low_cars": 10,
+    "high_cars": 30,
+    "low_att": 0,
+    "high_att": 3
+  },
+  "gamma": 0.9,
+  "gae-lambda": 1.0,
+  "first-order": false,
+  "hidden-sizes": [
+    128,
+    128
+  ],
+  "nonlinearity": "tanh",
+  "fast-batch-size": 20,
+  "num-steps": 1,
+  "fast-lr": 0.1,
+  "num-batches": 100,
+  "meta-batch-size": 40,
+  "max-kl": 0.01,
+  "cg-iters": 10,
+  "cg-damping": 1e-05,
+  "ls-max-steps": 15,
+  "ls-backtrack-ratio": 0.8,
+  "config": "configs/maml/highway.yaml",
+  "output_folder": "maml-highway/change_reward3/09252020",
+  "seed": null,
+  "num_workers": 8,
+  "use_cuda": false,
+  "device": "cpu"
+}

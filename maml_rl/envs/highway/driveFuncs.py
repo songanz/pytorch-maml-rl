@@ -4,13 +4,17 @@ import numpy as np
 import torch as tr
 
 
-def placeCars(envCars):
+def placeCars(envCars, traffic_density):
     # do this for all the cars
     # index starts from 1 as ego car is car_0
     if len(envCars) > 15:
         MAX_DIST = params.SIM_MAX_DISTANCE*2
     else:
         MAX_DIST = params.SIM_MAX_DISTANCE  # params.SIM_MAX_DISTANCE = 240
+
+    MAX_DIST = MAX_DIST * traffic_density
+    SAFE_DISTANCE = params.CAR_SAFE_DISTANCE * traffic_density
+
     for i in range(1, len(envCars)):
         laneOverlap = True
         while laneOverlap:
@@ -20,7 +24,7 @@ def placeCars(envCars):
             laneOverlap = False
             for j in range(0, i):
                 # only 0 to i cars have been placed already. 0-->ego car
-                if (laneNum == envCars[j].laneNum) and (abs(xPos-envCars[j].xPos) < params.CAR_SAFE_DISTANCE):
+                if (laneNum == envCars[j].laneNum) and (abs(xPos-envCars[j].xPos) < SAFE_DISTANCE):
                     # at least 20m of gap is between two cars between center of cars it is 18m
                     laneOverlap = True
                     break   # overlap so start a new
